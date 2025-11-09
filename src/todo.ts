@@ -10,7 +10,7 @@ export async function insertTodoComment(editor: TextEditor) {
 		(b) => {
 			b.insert(lineStartPosition, "\n");
 		},
-		{ undoStopBefore: false, undoStopAfter: false }
+		{ undoStopBefore: false, undoStopAfter: false },
 	);
 
 	// Move cursor to the new line
@@ -21,11 +21,14 @@ export async function insertTodoComment(editor: TextEditor) {
 		(b) => {
 			b.insert(lineStartPosition, "TODO");
 		},
-		{ undoStopBefore: false, undoStopAfter: false }
+		{ undoStopBefore: false, undoStopAfter: false },
 	);
 
 	// Use VS Code's built-in comment line command
 	await commands.executeCommand("editor.action.addCommentLine");
 
-	editor.selection = new Selection(selection.anchor.translate(1), selection.active.translate(1));
+	editor.selection = new Selection(
+		selection.anchor.translate(1),
+		selection.active.translate(1),
+	);
 }
