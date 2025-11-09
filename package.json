@@ -1,6 +1,7 @@
 {
 	"name": "script-manager",
 	"displayName": "Script Manager",
+	"type": "module",
 	"description": "",
 	"version": "0.0.1",
 	"engines": {
