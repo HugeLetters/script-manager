@@ -31,7 +31,12 @@
 		"plugins": [
 			{
 				"name": "@effect/language-service",
-				"namespaceImportPackages": ["effect"]
+				"namespaceImportPackages": [
+					"effect",
+					"@effect/platform",
+					"@effect/platform-node"
+				],
+				"importAliases": { "Array": "Arr", "String": "Str" }
 			}
 		]
 	},

@@ -1,6 +1,7 @@
 {
 	"name": "script-manager",
 	"displayName": "Script Manager",
+	"publisher": "HugeLetters",
 	"type": "module",
 	"description": "",
 	"version": "0.0.1",
@@ -10,27 +11,29 @@
 	"categories": [
 		"Other"
 	],
-	"main": "./dist/index.js",
+	"main": "./dist/index.cjs",
 	"activationEvents": [],
 	"contributes": {
 		"commands": [
 			{
-				"command": "script-manager.insertTodoComment",
+				"command": "script-manager.insert-todo-comment",
 				"title": "Todo Comment"
 			}
 		]
 	},
 	"scripts": {
-		"compile": "node esbuild.js",
+		"build": "node esbuild.js --production",
 		"dev": "node esbuild.js --watch",
-		"package": "node esbuild.js --production",
 		"format": "biome format --write",
 		"lint": "biome check",
 		"typecheck": "tsc",
-		"vscode:prepublish": "pnpm run package"
+		"vscode:prepublish": "pnpm run build"
 	},
 	"dependencies": {
-		"effect": "^3.19.3"
+		"@effect/platform": "^0.93.3",
+		"@effect/platform-node": "^0.101.1",
+		"effect": "^3.19.3",
+		"simple-git": "^3.30.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.4",

@@ -1,34 +1,45 @@
-import { commands, Selection, type TextEditor } from "vscode";
+import * as DateTime from "effect/DateTime";
+import * as Effect from "effect/Effect";
+import * as Option from "effect/Option";
+import { Selection } from "vscode";
+import { executeCommand } from "./command";
+import { TextEditorService } from "./editor";
+import { GitService } from "./git";
+import { concat } from "./string";
 
-export async function insertTodoComment(editor: TextEditor) {
+export const InsertTodoComment = Effect.gen(function* () {
+	const editor = yield* TextEditorService;
+	const git = yield* GitService;
+
 	const selection = editor.selection;
 	const position = selection.start;
 	const lineStartPosition = position.with(undefined, 0);
 
-	// Insert an empty line above
-	await editor.edit(
-		(b) => {
-			b.insert(lineStartPosition, "\n");
+	yield* editor.insert(lineStartPosition, "\n", {
+		undoStopBefore: false,
+		undoStopAfter: false,
+	});
+
+	editor.setSelection(new Selection(lineStartPosition, lineStartPosition));
+
+	const branch = yield* git.branchLocal;
+	const now = yield* DateTime.nowAsDate;
+	const branchChunk = Option.isSome(branch) ? `${branch.value.current} ` : null;
+	const preDescrptionChunk = concat`TODO ${branchChunk}| `;
+	yield* editor.insert(
+		lineStartPosition,
+		`${preDescrptionChunk} | by Evgenii Perminov at ${now.toUTCString()}`,
+		{
+			undoStopBefore: false,
+			undoStopAfter: false,
 		},
-		{ undoStopBefore: false, undoStopAfter: false },
 	);
 
-	// Move cursor to the new line
-	editor.selection = new Selection(lineStartPosition, lineStartPosition);
-
-	// Insert TODO text
-	await editor.edit(
-		(b) => {
-			b.insert(lineStartPosition, "TODO");
-		},
-		{ undoStopBefore: false, undoStopAfter: false },
+	const descriptionPosition = lineStartPosition.with(
+		undefined,
+		preDescrptionChunk.length,
 	);
+	editor.setSelection(new Selection(descriptionPosition, descriptionPosition));
 
-	// Use VS Code's built-in comment line command
-	await commands.executeCommand("editor.action.addCommentLine");
-
-	editor.selection = new Selection(
-		selection.anchor.translate(1),
-		selection.active.translate(1),
-	);
-}
+	yield* executeCommand("editor.action.addCommentLine");
+});
