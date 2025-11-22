@@ -6,6 +6,8 @@ import { registerTextEditorCommand } from "$/command";
 import { GitService } from "$/git";
 import { InsertTodoComment } from "$/todo";
 
+// todo - thorough logging
+
 export function activate(context: ExtensionContext) {
 	const insertTodoCommentCommand = registerTextEditorCommand(
 		"insert-todo-comment",

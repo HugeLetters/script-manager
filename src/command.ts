@@ -3,8 +3,8 @@ import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
 import * as Logger from "effect/Logger";
 import { commands } from "vscode";
+import { OutputChannel, VscodeConsoleLive } from "./console";
 import { TextEditorService } from "./editor";
-import { OutputChannelService, VscodeConsoleLive } from "./logger";
 
 type TextEditorCommand = Effect.Effect<void, unknown, TextEditorService>;
 
@@ -16,12 +16,11 @@ export function registerTextEditorCommand(
 		`script-manager.${name}`,
 		(editor) => {
 			return command.pipe(
-				Effect.tapError(Effect.logFatal),
 				Effect.catchAllCause(Effect.logFatal),
 				Effect.provide([
 					Logger.pretty,
 					TextEditorService.Default(editor),
-					Layer.provide(VscodeConsoleLive, OutputChannelService.Default),
+					Layer.provide(VscodeConsoleLive, OutputChannel.Default),
 				]),
 				Effect.runPromise,
 			);

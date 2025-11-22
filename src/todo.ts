@@ -22,7 +22,7 @@ export const InsertTodoComment = Effect.gen(function* () {
 
 	editor.setSelection(new Selection(lineStartPosition, lineStartPosition));
 
-	const branch = yield* git.branchLocal;
+	const branch = yield* git.branch;
 	const now = yield* DateTime.nowAsDate;
 	const branchChunk = Option.isSome(branch) ? `${branch.value.current} ` : null;
 	const preDescrptionChunk = concat`TODO ${branchChunk}| `;
@@ -42,4 +42,4 @@ export const InsertTodoComment = Effect.gen(function* () {
 	editor.setSelection(new Selection(descriptionPosition, descriptionPosition));
 
 	yield* executeCommand("editor.action.addCommentLine");
-});
+}).pipe(Effect.scoped);

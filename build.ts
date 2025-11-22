@@ -1,14 +1,14 @@
+import { argv } from "bun";
+import type { Plugin } from "esbuild";
 import { context } from "esbuild";
 
-const production = process.argv.includes("--production");
-const watch = process.argv.includes("--watch");
+// todo - fully build and package extension, generate packge.json fields
 
-/**
- * @type {import('esbuild').Plugin}
- */
-const esbuildProblemMatcherPlugin = {
-	name: "esbuild-problem-matcher",
+const production = argv.includes("--production");
+const watch = argv.includes("--watch");
 
+const ProblemMatcherPlugin: Plugin = {
+	name: "problem-matcher",
 	setup(build) {
 		build.onStart(() => {
 			console.log("[watch] build started");
@@ -16,10 +16,13 @@ const esbuildProblemMatcherPlugin = {
 		build.onEnd((result) => {
 			result.errors.forEach(({ text, location }) => {
 				console.error(`✘ [ERROR] ${text}`);
-				console.error(
-					`    ${location.file}:${location.line}:${location.column}:`,
-				);
+				if (location) {
+					console.error(
+						`    ${location.file}:${location.line}:${location.column}:`,
+					);
+				}
 			});
+
 			console.log("[watch] build finished");
 		});
 	},
@@ -36,18 +39,17 @@ async function main() {
 		platform: "node",
 		outfile: "dist/index.cjs",
 		external: ["vscode"],
-		logLevel: "silent",
-		plugins: [
-			/* add to the end of plugins array */
-			esbuildProblemMatcherPlugin,
-		],
+		logLevel: "info",
+		plugins: [ProblemMatcherPlugin],
 	});
+
 	if (watch) {
 		await ctx.watch();
-	} else {
-		await ctx.rebuild();
-		await ctx.dispose();
+		return;
 	}
+
+	await ctx.rebuild();
+	await ctx.dispose();
 }
 
 main().catch((e) => {

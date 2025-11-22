@@ -20,8 +20,6 @@ export class GitService extends Effect.Service<GitService>()(
 			const currentUri = editor.service.document.uri;
 			const dirname = path.dirname(currentUri.fsPath);
 
-			yield* Effect.log(`GitService: using directory ${dirname}`);
-
 			const service = yield* Effect.try(() => simpleGit({ baseDir: dirname }));
 			const result: GitLiveConfig = { service };
 			return result;
@@ -40,7 +38,6 @@ export class GitService extends Effect.Service<GitService>()(
 	});
 
 	branch = this.use((git) => git.branch()).pipe(Effect.option);
-	branchLocal = this.use((git) => git.branchLocal()).pipe(Effect.option);
 }
 
 export class GitError extends Data.TaggedError("GitError")<{
