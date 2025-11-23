@@ -1,24 +1,33 @@
+import * as Path from "@effect/platform/Path";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
-import type { Position, Selection, TextEditor } from "vscode";
-import { asError } from "./error";
-import { effectify } from "./promise";
+import * as Layer from "effect/Layer";
+import type {
+	Position,
+	Selection,
+	TextEditor as VsCodeTextEditor,
+} from "vscode";
+import { asError } from "$/utils/error";
+import { effectify } from "$/utils/promise";
+import { CurrentDirectory } from "../service/directory";
 
 interface TextEditorLiveConfig {
 	/** @private */
-	readonly service: TextEditor;
+	readonly service: VsCodeTextEditor;
 }
 
-export class TextEditorService extends Effect.Service<TextEditorService>()(
-	"script-manager/editor/TextEditorService",
+export class TextEditor extends Effect.Service<TextEditor>()(
+	"script-manager/editor/TextEditor",
 	{
-		effect(editor: TextEditor) {
+		effect(editor: VsCodeTextEditor) {
 			return Effect.succeed<TextEditorLiveConfig>({ service: editor });
 		},
 	},
 ) {
 	use = Effect.fn(
-		<T>(run: (editor: TextEditor) => Thenable<T> | PromiseLike<T> | T) => {
+		<T>(
+			run: (editor: VsCodeTextEditor) => Thenable<T> | PromiseLike<T> | T,
+		) => {
 			return Effect.tryPromise({
 				try: async () => {
 					return run(this.service);
@@ -38,7 +47,7 @@ export class TextEditorService extends Effect.Service<TextEditorService>()(
 		(
 			location: Position,
 			value: string,
-			options?: Parameters<TextEditor["edit"]>[1],
+			options?: Parameters<VsCodeTextEditor["edit"]>[1],
 		) => {
 			return this.edit((b) => {
 				b.insert(location, value);
@@ -60,3 +69,13 @@ export class TextEditorError extends Data.TaggedError("TextEditorError")<{
 	override cause = asError(this.error);
 	override message = this.cause.message;
 }
+
+export const TextEditorDirectory = Layer.effect(
+	CurrentDirectory,
+	TextEditor.pipe(
+		Effect.map((editor) => editor.service.document.uri.fsPath),
+		Effect.flatMap((editorPath) =>
+			Path.Path.pipe(Effect.map((path) => path.dirname(editorPath))),
+		),
+	),
+);

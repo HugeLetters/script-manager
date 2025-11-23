@@ -3,15 +3,15 @@ import * as Effect from "effect/Effect";
 import * as FiberSet from "effect/FiberSet";
 import * as Layer from "effect/Layer";
 import * as Logger from "effect/Logger";
-import { OutputChannel, VscodeConsoleLive } from "./console";
+import { OutputChannel, VscodeConsoleLive } from "$/vscode/console";
 
-export const RuntimeLayer = Layer.mergeAll(
+export const RuntimeLive = Layer.mergeAll(
 	Logger.pretty,
 	VscodeConsoleLive,
 	NodeContext.layer,
 ).pipe(Layer.provideMerge(OutputChannel.Default));
 
-export type RuntimeContext = Layer.Layer.Success<typeof RuntimeLayer>;
+export type RuntimeContext = Layer.Layer.Success<typeof RuntimeLive>;
 
 export const Runtime = FiberSet.makeRuntime<RuntimeContext>().pipe(
 	Effect.map(

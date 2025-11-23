@@ -4,16 +4,16 @@ import * as BunContext from "@effect/platform-bun/BunContext";
 import * as BunRuntime from "@effect/platform-bun/BunRuntime";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
-import { executeCommand } from "$/utils/shell/command";
+import { Shell } from "$/utils/shell";
 
 const Package = Effect.fn(function* (extension: string) {
 	const cmd = Command.make("bun", "run", "package", "--out", extension);
-	yield* executeCommand(cmd);
+	yield* Shell.execute(cmd);
 });
 
 const Install = Effect.fn(function* (extension: string) {
 	const cmd = Command.make("code", "--install-extension", extension);
-	yield* executeCommand(cmd);
+	yield* Shell.execute(cmd);
 });
 
 Effect.gen(function* () {
