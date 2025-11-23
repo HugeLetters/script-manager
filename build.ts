@@ -1,4 +1,8 @@
+import * as FileSystem from "@effect/platform/FileSystem";
+import * as BunContext from "@effect/platform-bun/BunContext";
+import * as BunRuntime from "@effect/platform-bun/BunRuntime";
 import { argv } from "bun";
+import { Effect } from "effect";
 import type { Plugin } from "esbuild";
 import { context } from "esbuild";
 
@@ -28,31 +32,31 @@ const ProblemMatcherPlugin: Plugin = {
 	},
 };
 
-async function main() {
-	const ctx = await context({
-		entryPoints: ["src/index.ts"],
-		bundle: true,
-		format: "cjs",
-		minify: production,
-		sourcemap: !production,
-		sourcesContent: false,
-		platform: "node",
-		outfile: "dist/index.cjs",
-		external: ["vscode"],
-		logLevel: "info",
-		plugins: [ProblemMatcherPlugin],
-	});
+Effect.gen(function* () {
+	const ctx = yield* Effect.tryPromise(() =>
+		context({
+			entryPoints: ["src/index.ts"],
+			bundle: true,
+			format: "cjs",
+			minify: production,
+			sourcemap: !production,
+			sourcesContent: false,
+			platform: "node",
+			outfile: "dist/index.js",
+			external: ["vscode"],
+			logLevel: "info",
+			plugins: [ProblemMatcherPlugin],
+		}),
+	);
 
 	if (watch) {
-		await ctx.watch();
+		yield* Effect.tryPromise(() => ctx.watch());
 		return;
 	}
 
-	await ctx.rebuild();
-	await ctx.dispose();
-}
+	const fs = yield* FileSystem.FileSystem;
+	yield* fs.remove("dist", { force: true, recursive: true });
 
-main().catch((e) => {
-	console.error(e);
-	process.exit(1);
-});
+	yield* Effect.tryPromise(() => ctx.rebuild());
+	yield* Effect.tryPromise(() => ctx.dispose());
+}).pipe(Effect.provide([BunContext.layer]), BunRuntime.runMain);

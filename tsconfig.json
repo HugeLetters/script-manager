@@ -34,11 +34,12 @@
 				"namespaceImportPackages": [
 					"effect",
 					"@effect/platform",
-					"@effect/platform-node"
+					"@effect/platform-node",
+					"@effect/platform-bun"
 				],
 				"importAliases": { "Array": "Arr", "String": "Str" }
 			}
 		]
 	},
-	"include": ["src"]
+	"include": ["src", "build.ts"]
 }
