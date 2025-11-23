@@ -2,9 +2,8 @@ import * as FileSystem from "@effect/platform/FileSystem";
 import * as BunContext from "@effect/platform-bun/BunContext";
 import * as BunRuntime from "@effect/platform-bun/BunRuntime";
 import { argv } from "bun";
-import { Effect } from "effect";
-import type { Plugin } from "esbuild";
-import { context } from "esbuild";
+import * as Effect from "effect/Effect";
+import { context, type Plugin } from "esbuild";
 
 // todo - fully build and package extension, generate packge.json fields
 

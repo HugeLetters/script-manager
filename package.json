@@ -23,12 +23,13 @@
 		]
 	},
 	"scripts": {
-		"build": "bun run build.ts --production",
-		"dev": "bun run build.ts --watch",
+		"build": "bun run src/build/build.ts --production",
+		"dev": "bun run src/build/build.ts --watch",
 		"format": "biome format --write",
 		"lint": "biome check",
 		"typecheck": "tsc",
 		"package": "vsce package",
+		"release": "bun run src/build/release.ts",
 		"vscode:prepublish": "bun run build"
 	},
 	"dependencies": {
@@ -45,7 +46,7 @@
 		"@types/node": "^22",
 		"@types/vscode": "^1.105.0",
 		"esbuild": "^0.25.10",
-		"vsce": "^2.15.0",
-		"typescript": "^5.9.3"
+		"typescript": "^5.9.3",
+		"vsce": "^2.15.0"
 	}
 }
