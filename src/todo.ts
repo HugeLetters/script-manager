@@ -8,6 +8,8 @@ import { GitService } from "./git";
 import { concat } from "./string";
 
 export const InsertTodoComment = Effect.gen(function* () {
+	yield* Effect.log("Inserting todo comment");
+
 	const editor = yield* TextEditorService;
 	const git = yield* GitService;
 
@@ -22,10 +24,12 @@ export const InsertTodoComment = Effect.gen(function* () {
 
 	editor.setSelection(new Selection(lineStartPosition, lineStartPosition));
 
-	const branch = yield* git.branch;
 	const now = yield* DateTime.nowAsDate;
-	const branchChunk = Option.isSome(branch) ? `${branch.value.current} ` : null;
-	const preDescrptionChunk = concat`TODO ${branchChunk}| `;
+	const branch = yield* git.branch.pipe(
+		Effect.map(Option.map((b) => `${b.current} `)),
+		Effect.map(Option.getOrElse(() => null)),
+	);
+	const preDescrptionChunk = concat`TODO ${branch}| `;
 	yield* editor.insert(
 		lineStartPosition,
 		`${preDescrptionChunk} | by Evgenii Perminov at ${now.toUTCString()}`,
@@ -42,4 +46,4 @@ export const InsertTodoComment = Effect.gen(function* () {
 	editor.setSelection(new Selection(descriptionPosition, descriptionPosition));
 
 	yield* executeCommand("editor.action.addCommentLine");
-}).pipe(Effect.scoped);
+});

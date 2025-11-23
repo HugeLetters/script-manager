@@ -27,7 +27,7 @@
 		"format": "biome format --write",
 		"lint": "biome check",
 		"typecheck": "tsc",
-		"vscode:prepublish": "pnpm run build"
+		"vscode:prepublish": "bun run build"
 	},
 	"dependencies": {
 		"@effect/platform": "^0.93.3",

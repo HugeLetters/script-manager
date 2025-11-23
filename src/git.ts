@@ -20,6 +20,8 @@ export class GitService extends Effect.Service<GitService>()(
 			const currentUri = editor.service.document.uri;
 			const dirname = path.dirname(currentUri.fsPath);
 
+			yield* Effect.log("Initiating git service", { dirname });
+
 			const service = yield* Effect.try({
 				try() {
 					return simpleGit({ baseDir: dirname });

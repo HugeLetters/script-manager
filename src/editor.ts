@@ -1,6 +1,7 @@
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import type { Position, Selection, TextEditor } from "vscode";
+import { asError } from "./error";
 import { effectify } from "./promise";
 
 interface TextEditorLiveConfig {
@@ -23,17 +24,14 @@ export class TextEditorService extends Effect.Service<TextEditorService>()(
 					return run(this.service);
 				},
 				catch(error) {
-					return new TextEditorError({ cause: error });
+					return new TextEditorError({ error });
 				},
 			});
 		},
 	);
 
 	edit = Effect.fn(
-		effectify(
-			this.service.edit,
-			(error) => new TextEditorError({ cause: error }),
-		),
+		effectify(this.service.edit, (error) => new TextEditorError({ error })),
 	);
 
 	insert = Effect.fn(
@@ -57,5 +55,8 @@ export class TextEditorService extends Effect.Service<TextEditorService>()(
 }
 
 export class TextEditorError extends Data.TaggedError("TextEditorError")<{
-	cause: unknown;
-}> {}
+	error: unknown;
+}> {
+	override cause = asError(this.error);
+	override message = this.cause.message;
+}

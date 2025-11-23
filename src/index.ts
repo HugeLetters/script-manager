@@ -5,10 +5,10 @@ import { GitService } from "$/git";
 import { InsertTodoComment } from "$/todo";
 import { RuntimeLayer } from "./runtime";
 
-// todo - thorough logging
-
 export function activate(context: ExtensionContext) {
 	Effect.gen(function* () {
+		yield* Effect.log("Activated");
+
 		const todo = yield* registerTextEditorCommand(
 			"insert-todo-comment",
 			InsertTodoComment.pipe(Effect.provide(GitService.Default)),
