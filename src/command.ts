@@ -1,32 +1,25 @@
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
-import * as Layer from "effect/Layer";
-import * as Logger from "effect/Logger";
 import { commands } from "vscode";
-import { OutputChannel, VscodeConsoleLive } from "./console";
 import { TextEditorService } from "./editor";
+import { Runtime, type RuntimeContext } from "./runtime";
 
-type TextEditorCommand = Effect.Effect<void, unknown, TextEditorService>;
-
-export function registerTextEditorCommand(
+export const registerTextEditorCommand = Effect.fn(function* (
 	name: string,
-	command: TextEditorCommand,
+	command: Effect.Effect<void, unknown, RuntimeContext | TextEditorService>,
 ) {
+	const run = yield* Runtime;
+
 	return commands.registerTextEditorCommand(
 		`script-manager.${name}`,
 		(editor) => {
 			return command.pipe(
-				Effect.catchAllCause(Effect.logFatal),
-				Effect.provide([
-					Logger.pretty,
-					TextEditorService.Default(editor),
-					Layer.provide(VscodeConsoleLive, OutputChannel.Default),
-				]),
-				Effect.runPromise,
+				Effect.provide(TextEditorService.Default(editor)),
+				run,
 			);
 		},
 	);
-}
+});
 
 export const executeCommand = Effect.fn((command: string) => {
 	return Effect.tryPromise({
