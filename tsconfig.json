@@ -37,7 +37,7 @@
 					"@effect/platform-node",
 					"@effect/platform-bun"
 				],
-				"importAliases": { "Array": "Arr", "String": "Str" }
+				"importAliases": { "Array": "Arr", "String": "Str", "Function": "Fn" }
 			}
 		]
 	},

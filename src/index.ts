@@ -1,31 +1,29 @@
+import { pipe } from "effect";
+import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
-import * as Layer from "effect/Layer";
 import type { ExtensionContext } from "vscode";
-import { InsertTodoComment } from "$/commands/todo";
-import { Git } from "$/service/git";
-import { registerTextEditorCommand } from "$/vscode/command";
-import { TextEditorDirectory } from "$/vscode/editor";
-import { RuntimeLive } from "./runtime";
+import { Commands } from "./commands";
+
+import { VsCommand } from "./vscode/command";
 
 export function activate(context: ExtensionContext) {
-	Effect.gen(function* () {
+	return Effect.gen(function* () {
 		yield* Effect.log("Activated");
 
-		const todo = yield* registerTextEditorCommand(
-			"insert-todo-comment",
-			InsertTodoComment.pipe(
-				Effect.provide([Layer.provide(Git.Default, TextEditorDirectory)]),
-			),
+		const commands = yield* pipe(
+			Commands,
+			Arr.map((command) => {
+				if (command._tag === "TextCommand") {
+					return VsCommand.registerTextCommand(command);
+				}
+
+				return VsCommand.registerCommand(command);
+			}),
+			Effect.allWith({ concurrency: "unbounded" }),
 		);
 
-		context.subscriptions.push(todo);
-		return yield* Effect.never;
-	}).pipe(
-		Effect.provide([RuntimeLive]),
-		Effect.scoped,
-		Effect.catchAllCause(Effect.logFatal),
-		Effect.runPromise,
-	);
+		context.subscriptions.push(...commands);
+	}).pipe(Effect.tapErrorCause(Effect.logFatal), Effect.runPromise);
 }
 
 export function deactivate() {}

@@ -1,10 +1,11 @@
 import { pipe } from "effect";
 import * as Arr from "effect/Array";
+import * as Iterable from "effect/Iterable";
 import * as Option from "effect/Option";
 import * as Predicate from "effect/Predicate";
 import * as Str from "effect/String";
 
-namespace Str_ {
+export namespace StringUtils {
 	export function template(
 		template: TemplateStringsArray,
 		...chunks: ReadonlyArray<string | null>
@@ -18,6 +19,8 @@ namespace Str_ {
 			Str.concat(Arr.last(template).pipe(Option.getOrElse(() => ""))),
 		);
 	}
-}
 
-export { Str_ as Str };
+	export function concat(...chunks: ReadonlyArray<string | null>) {
+		return pipe(chunks, Iterable.filter(Predicate.isNotNullable), Arr.join(""));
+	}
+}

@@ -2,32 +2,26 @@ import * as Path from "@effect/platform/Path";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import type {
-	Position,
-	Selection,
-	TextEditor as VsCodeTextEditor,
-} from "vscode";
+import type { Position, Selection, TextEditor as VsTextEditor } from "vscode";
 import { asError } from "$/utils/error";
 import { effectify } from "$/utils/promise";
 import { CurrentDirectory } from "../service/directory";
 
 interface TextEditorLiveConfig {
 	/** @private */
-	readonly service: VsCodeTextEditor;
+	readonly service: VsTextEditor;
 }
 
 export class TextEditor extends Effect.Service<TextEditor>()(
 	"script-manager/editor/TextEditor",
 	{
-		effect(editor: VsCodeTextEditor) {
+		effect(editor: VsTextEditor) {
 			return Effect.succeed<TextEditorLiveConfig>({ service: editor });
 		},
 	},
 ) {
 	use = Effect.fn(
-		<T>(
-			run: (editor: VsCodeTextEditor) => Thenable<T> | PromiseLike<T> | T,
-		) => {
+		<T>(run: (editor: VsTextEditor) => Thenable<T> | PromiseLike<T> | T) => {
 			return Effect.tryPromise({
 				try: async () => {
 					return run(this.service);
@@ -47,7 +41,7 @@ export class TextEditor extends Effect.Service<TextEditor>()(
 		(
 			location: Position,
 			value: string,
-			options?: Parameters<VsCodeTextEditor["edit"]>[1],
+			options?: Parameters<VsTextEditor["edit"]>[1],
 		) => {
 			return this.edit((b) => {
 				b.insert(location, value);
@@ -63,19 +57,21 @@ export class TextEditor extends Effect.Service<TextEditor>()(
 	}
 }
 
+export namespace TextEditor {
+	export const CurrentDirectoryLive = Layer.effect(
+		CurrentDirectory,
+		Effect.gen(function* () {
+			const editor = yield* TextEditor;
+			const path = yield* Path.Path;
+			const editorPath = editor.service.document.uri.fsPath;
+			return path.dirname(editorPath);
+		}),
+	);
+}
+
 export class TextEditorError extends Data.TaggedError("TextEditorError")<{
 	error: unknown;
 }> {
 	override cause = asError(this.error);
 	override message = this.cause.message;
 }
-
-export const TextEditorDirectory = Layer.effect(
-	CurrentDirectory,
-	TextEditor.pipe(
-		Effect.map((editor) => editor.service.document.uri.fsPath),
-		Effect.flatMap((editorPath) =>
-			Path.Path.pipe(Effect.map((path) => path.dirname(editorPath))),
-		),
-	),
-);
