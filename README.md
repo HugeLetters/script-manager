@@ -9,6 +9,8 @@ Before working with this project, ensure you have the following global dependenc
 - **[VS Code](https://code.visualstudio.com/)** - Obviously
 - **[Bun](https://bun.sh/)** - Package manager and runtime (required for build scripts and development)
 
+
+
 ## Available Commands
 
 ### Development Commands
@@ -107,6 +109,11 @@ However, if you need to manually add command declarations:
   };
 }
 ```
+
+
+### Development Tools
+
+This project uses **[OpenCode](https://opencode.ai/)** for AI-assisted development. While not required, OpenCode provides helpful commands and agents that streamline development workflows. The project includes custom OpenCode commands in the `.opencode/command/` directory.
 
 ## Important Notes
 
