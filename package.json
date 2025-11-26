@@ -11,7 +11,9 @@
 	"categories": [
 		"Other"
 	],
-	"repository": {},
+	"repository": {
+		"url": "https://github.com/HugeLetters/script-manager"
+	},
 	"main": "./dist/index.js",
 	"activationEvents": [],
 	"scripts": {
