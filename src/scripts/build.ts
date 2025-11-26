@@ -21,7 +21,7 @@ const ReleasePlugin = makePlugin({
 	onEnd: () => Release.Postbuild,
 });
 
-const BuildTimePlugin = Effect.fn(function* () {
+const BuildTimePlugin = Effect.fn("BuildTimePlugin ")(function* () {
 	const now = yield* DateTime.now;
 	const startTime = yield* SynchronizedRef.make(now);
 
@@ -32,7 +32,7 @@ const BuildTimePlugin = Effect.fn(function* () {
 			yield* SynchronizedRef.set(startTime, now);
 			yield* Effect.logInfo("Build started");
 		}),
-		onEnd: Effect.fn(function* () {
+		onEnd: Effect.fnUntraced(function* () {
 			const start = yield* startTime;
 			const now = yield* DateTime.now;
 			const elapsed = now.epochMillis - start.epochMillis;
@@ -44,10 +44,10 @@ const BuildTimePlugin = Effect.fn(function* () {
 const ProblemMatcherPlugin = makePlugin({
 	name: "problem-matcher",
 	onStart: Console.log("[watch] build started"),
-	onEnd: Effect.fn(function* (result) {
+	onEnd: Effect.fnUntraced(function* (result) {
 		yield* Effect.all(
 			result.errors.map(
-				Effect.fn(function* ({ text, location }) {
+				Effect.fnUntraced(function* ({ text, location }) {
 					yield* Console.error(`✘ [ERROR] ${text}`);
 
 					if (location) {
@@ -69,7 +69,10 @@ interface BuildConfig {
 	release: boolean;
 }
 
-export const Build = Effect.fn(function* ({ watch, release }: BuildConfig) {
+export const Build = Effect.fn("Build")(function* ({
+	watch,
+	release,
+}: BuildConfig) {
 	const Plugins: Array<Plugin> = [];
 
 	if (release) {

@@ -4,7 +4,7 @@ import * as Layer from "effect/Layer";
 import { commands } from "vscode";
 import { CommandPrefix } from "$/config";
 import type { SharedRuntimeContext } from "$/runtime";
-import { runCommand } from "$/runtime";
+import { Runtime } from "$/runtime";
 import type { CurrentDirectory } from "$/service/directory";
 import { asError } from "$/utils/error";
 import { TextEditor } from "$/vscode/editor";
@@ -26,44 +26,64 @@ export namespace VsCommand {
 
 	export type AnyCommand = Command | TextCommand;
 
-	export const registerCommand = Effect.fn(function* (command: Command) {
-		const prefix = yield* CommandPrefix;
-		return commands.registerCommand(`${prefix}.${command.id}`, () =>
-			command.task.pipe(runCommand),
-		);
-	});
-
-	export const registerTextCommand = Effect.fn(function* (
-		command: TextCommand,
+	export const registerCommand = Effect.fn("registerCommand")(function* (
+		command: Command,
 	) {
+		const run = yield* Runtime;
 		const prefix = yield* CommandPrefix;
-		return commands.registerTextEditorCommand(
-			`${prefix}.${command.id}`,
-			(editor) => {
-				const EditorLayer = Layer.provideMerge(
-					TextEditor.CurrentDirectoryLive,
-					TextEditor.Default(editor),
-				);
-				return command.task.pipe(Effect.provide([EditorLayer]), runCommand);
-			},
-		);
+
+		return yield* tryPromise(() => {
+			return commands.registerCommand(`${prefix}.${command.id}`, () =>
+				command.task.pipe(run),
+			);
+		});
 	});
 
-	export const execute = Effect.fn((command: string) => {
+	export const registerTextCommand = Effect.fn("registerTextCommand")(
+		function* (command: TextCommand) {
+			const run = yield* Runtime;
+			const prefix = yield* CommandPrefix;
+
+			return yield* tryPromise(() => {
+				return commands.registerTextEditorCommand(
+					`${prefix}.${command.id}`,
+					(editor) => {
+						const EditorLayer = Layer.provideMerge(
+							TextEditor.CurrentDirectoryLive,
+							TextEditor.Default(editor),
+						);
+						return command.task.pipe(Effect.provide([EditorLayer]), run);
+					},
+				);
+			});
+		},
+	);
+
+	export const execute = Effect.fn("execute")((command: string) => {
 		return Effect.tryPromise({
 			try() {
 				return commands.executeCommand(command);
 			},
 			catch(error) {
-				return new VsCommandError({ error });
+				return new VsCommandError({ cause: error });
 			},
 		});
 	});
+
+	const tryPromise = Effect.fn("tryPromise")(
+		<R>(run: () => R | PromiseLike<R>) => {
+			return Effect.tryPromise({
+				try: async () => run(),
+				catch(error) {
+					return new VsCommandError({ cause: error });
+				},
+			});
+		},
+	);
 }
 
 export class VsCommandError extends Data.TaggedError("VsCommandError")<{
-	error: unknown;
+	cause: unknown;
 }> {
-	override cause = asError(this.error);
-	override message = this.cause.message;
+	override message = asError(this.cause).message;
 }

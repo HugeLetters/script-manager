@@ -20,24 +20,27 @@ export class TextEditor extends Effect.Service<TextEditor>()(
 		},
 	},
 ) {
-	use = Effect.fn(
+	use = Effect.fn("use")(
 		<T>(run: (editor: VsTextEditor) => Thenable<T> | PromiseLike<T> | T) => {
 			return Effect.tryPromise({
 				try: async () => {
 					return run(this.service);
 				},
 				catch(error) {
-					return new TextEditorError({ error });
+					return new TextEditorError({ cause: error });
 				},
 			});
 		},
 	);
 
-	edit = Effect.fn(
-		effectify(this.service.edit, (error) => new TextEditorError({ error })),
+	edit = Effect.fn("edit")(
+		effectify(
+			this.service.edit,
+			(error) => new TextEditorError({ cause: error }),
+		),
 	);
 
-	insert = Effect.fn(
+	insert = Effect.fn("insert")(
 		(
 			location: Position,
 			value: string,
@@ -70,8 +73,7 @@ export namespace TextEditor {
 }
 
 export class TextEditorError extends Data.TaggedError("TextEditorError")<{
-	error: unknown;
+	cause: unknown;
 }> {
-	override cause = asError(this.error);
-	override message = this.cause.message;
+	override message = asError(this.cause).message;
 }

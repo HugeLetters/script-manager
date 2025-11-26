@@ -75,7 +75,7 @@ export const ExtractCommandDeclaration = Effect.gen(function* () {
 	const commandInitializers = yield* pipe(
 		commandElements,
 		Arr.map(
-			Effect.fn(function* (element) {
+			Effect.fnUntraced(function* (element) {
 				const name = TsMorph.getNodeName(element);
 
 				if (element.isKind(SyntaxKind.NewExpression)) {
@@ -136,7 +136,9 @@ function getVariableNewExpression(variable: VariableDeclaration) {
 	);
 }
 
-const getCommandMetadata = Effect.fn(function* (command: CommandVariable) {
+const getCommandMetadata = Effect.fn("getCommandMetadata")(function* (
+	command: CommandVariable,
+) {
 	const prefix = yield* CommandPrefix;
 	return yield* pipe(
 		command.value.getArguments(),
@@ -174,32 +176,30 @@ const getCommandMetadata = Effect.fn(function* (command: CommandVariable) {
 	);
 });
 
-const getStringLiteralProperty = Effect.fn(function* (
-	node: ObjectLiteralExpression,
-	key: string,
-) {
-	return yield* getOptionalStringLiteralProperty(node, key).pipe(
-		Effect.flatMap(
-			Option.match({
-				onNone() {
-					const name = TsMorph.getNodeName(node);
-					const location = TsMorph.getNodeLocation(node);
-					return Effect.fail(
-						new Error(`${name} at ${location} has no property '${key}'`),
-					);
-				},
-				onSome(value) {
-					return Effect.succeed(value);
-				},
-			}),
-		),
-	);
-});
+const getStringLiteralProperty = Effect.fn("getStringLiteralProperty ")(
+	function* (node: ObjectLiteralExpression, key: string) {
+		return yield* getOptionalStringLiteralProperty(node, key).pipe(
+			Effect.flatMap(
+				Option.match({
+					onNone() {
+						const name = TsMorph.getNodeName(node);
+						const location = TsMorph.getNodeLocation(node);
+						return Effect.fail(
+							new Error(`${name} at ${location} has no property '${key}'`),
+						);
+					},
+					onSome(value) {
+						return Effect.succeed(value);
+					},
+				}),
+			),
+		);
+	},
+);
 
-const getOptionalStringLiteralProperty = Effect.fn(function* (
-	node: ObjectLiteralExpression,
-	key: string,
-) {
+const getOptionalStringLiteralProperty = Effect.fn(
+	"getOptionalStringLiteralProperty",
+)(function* (node: ObjectLiteralExpression, key: string) {
 	const value = node.getProperty(key);
 	if (!value) {
 		return yield* Effect.succeed(Option.none<string>());

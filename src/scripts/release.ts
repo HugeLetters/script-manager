@@ -4,7 +4,7 @@ import { pipe } from "effect";
 import * as DateTime from "effect/DateTime";
 import * as Effect from "effect/Effect";
 import * as Schema from "effect/Schema";
-import { Shell } from "$/utils/shell";
+import { CommandUtils } from "$/utils/shell";
 import { ExtractCommandDeclaration } from "./command-declaration";
 import { PackageJson } from "./package-json";
 
@@ -41,22 +41,22 @@ const UpdatePackageJson = Effect.gen(function* () {
 
 	yield* pipe(
 		Command.make("bun", "run", "format", "package.json"),
-		Shell.execute,
+		CommandUtils.execute,
 		Effect.catchAll((err) =>
 			Effect.logWarning("Failed to format package.json", err),
 		),
 	);
 });
 
-const Package = Effect.fn(function* (extension: string) {
+const Package = Effect.fn("Package")(function* (extension: string) {
 	yield* Effect.log("Packaging extension");
 	const cmd = Command.make("bun", "run", "package", "--out", extension);
-	yield* Shell.execute(cmd);
+	yield* CommandUtils.execute(cmd);
 });
 
-const Install = Effect.fn(function* (extension: string) {
+const Install = Effect.fn("Install")(function* (extension: string) {
 	const cmd = Command.make("code", "--install-extension", extension);
-	yield* Shell.execute(cmd);
+	yield* CommandUtils.execute(cmd);
 });
 
 export namespace Release {

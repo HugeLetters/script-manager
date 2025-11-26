@@ -19,20 +19,20 @@ export class Git extends Effect.Service<Git>()("script-manager/git/Git", {
 				return simpleGit({ baseDir: dirname });
 			},
 			catch(error) {
-				return new GitError({ error });
+				return new GitError({ cause: error });
 			},
 		});
 		const result: GitLiveConfig = { service };
 		return result;
 	}),
 }) {
-	use = Effect.fn(<T>(run: (git: SimpleGit) => PromiseLike<T> | T) => {
+	use = Effect.fn("use")(<T>(run: (git: SimpleGit) => PromiseLike<T> | T) => {
 		return Effect.tryPromise({
 			try: async () => {
 				return run(this.service);
 			},
 			catch(error) {
-				return new GitError({ error });
+				return new GitError({ cause: error });
 			},
 		});
 	});
@@ -41,8 +41,7 @@ export class Git extends Effect.Service<Git>()("script-manager/git/Git", {
 }
 
 export class GitError extends Data.TaggedError("GitError")<{
-	error: unknown;
+	cause: unknown;
 }> {
-	override cause = asError(this.error);
-	override message = this.cause.message;
+	override message = asError(this.cause).message;
 }

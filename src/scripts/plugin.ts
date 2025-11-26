@@ -13,7 +13,9 @@ class PluginStartError extends Data.TaggedError(
 )<OnStartResult> {}
 class PluginEndError extends Data.TaggedError("PluginEndError")<OnEndResult> {}
 
-export const makePlugin = Effect.fn(function* <R>(config: PluginConfig<R>) {
+export const makePlugin = Effect.fn("makePlugin")(function* <R>(
+	config: PluginConfig<R>,
+) {
 	const run = yield* FiberHandle.makeRuntime<R, null>();
 
 	const plugin: Plugin = {

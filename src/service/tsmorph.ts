@@ -30,7 +30,7 @@ export class TsMorph extends Effect.Service<TsMorph>()(
 					});
 				},
 				catch(error) {
-					return new TsMorphError({ error });
+					return new TsMorphError({ cause: error });
 				},
 			});
 
@@ -39,18 +39,18 @@ export class TsMorph extends Effect.Service<TsMorph>()(
 		}),
 	},
 ) {
-	use = Effect.fn(<T>(run: (project: Project) => PromiseLike<T> | T) => {
+	use = Effect.fn("use")(<T>(run: (project: Project) => PromiseLike<T> | T) => {
 		return Effect.tryPromise({
 			try: async () => {
 				return run(this.project);
 			},
 			catch(error) {
-				return new TsMorphError({ error });
+				return new TsMorphError({ cause: error });
 			},
 		});
 	});
 
-	addSourceFile = Effect.fn((filePath: string) => {
+	addSourceFile = Effect.fn("addSourceFile")((filePath: string) => {
 		return this.use((project) => {
 			return project.addSourceFileAtPath(filePath);
 		});
@@ -70,8 +70,7 @@ export namespace TsMorph {
 }
 
 export class TsMorphError extends Data.TaggedError("TsMorphError")<{
-	error: unknown;
+	cause: unknown;
 }> {
-	override cause = asError(this.error);
-	override message = this.cause.message;
+	override message = asError(this.cause).message;
 }

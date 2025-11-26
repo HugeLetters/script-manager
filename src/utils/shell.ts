@@ -10,13 +10,15 @@ import * as Stream from "effect/Stream";
 import * as Str from "effect/String";
 import { StringUtils } from "$/utils/string";
 
-export class ShellError extends Data.TaggedError("ShellError")<{
+export class CommandError extends Data.TaggedError("CommandError")<{
+	readonly command: Command.Command;
 	readonly exitCode: CommandExecutor.ExitCode;
 }> {
-	override readonly message = `Exited with code ${this.exitCode}`;
+	override readonly message =
+		`Command '${CommandUtils.format(this.command)}' exited with code ${this.exitCode}`;
 }
 
-export namespace Shell {
+export namespace CommandUtils {
 	export const format = Match.type<Command.Command>().pipe(
 		Match.tag("PipedCommand", (piped): string => {
 			return `${format(piped.left)} | ${format(piped.right)}`;
@@ -32,7 +34,9 @@ export namespace Shell {
 		Match.exhaustive,
 	);
 
-	export const execute = Effect.fn(function* (command: Command.Command) {
+	export const execute = Effect.fn("execute")(function* (
+		command: Command.Command,
+	) {
 		return yield* Command.start(command).pipe(
 			Effect.flatMap((process) => {
 				const decoder = new TextDecoder();
@@ -70,7 +74,7 @@ export namespace Shell {
 			}),
 			Effect.flatMap((exitCode) => {
 				if (exitCode !== 0) {
-					return new ShellError({ exitCode });
+					return new CommandError({ command, exitCode });
 				}
 
 				return Effect.void;

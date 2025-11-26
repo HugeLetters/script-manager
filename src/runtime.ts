@@ -1,5 +1,6 @@
 import * as NodeContext from "@effect/platform-node/NodeContext";
 import * as Effect from "effect/Effect";
+import * as FiberSet from "effect/FiberSet";
 import * as Layer from "effect/Layer";
 import * as Logger from "effect/Logger";
 import { OutputChannel, VsConsoleLive } from "$/vscode/console";
@@ -14,12 +15,13 @@ export type SharedRuntimeContext = Layer.Layer.Success<
 	typeof SharedRuntimeLive
 >;
 
-export function runCommand(
-	effect: Effect.Effect<void, unknown, SharedRuntimeContext>,
-) {
-	return effect.pipe(
-		Effect.provide(SharedRuntimeLive),
-		Effect.tapErrorCause(Effect.logFatal),
-		Effect.runPromise,
-	);
-}
+export const Runtime = FiberSet.makeRuntime<SharedRuntimeContext>().pipe(
+	Effect.map(
+		(run) => (effect: Effect.Effect<void, unknown, SharedRuntimeContext>) =>
+			effect.pipe(
+				Effect.tapErrorCause(Effect.logFatal),
+				run,
+				Effect.runPromise,
+			),
+	),
+);
