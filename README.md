@@ -95,8 +95,8 @@ export const Commands: ReadonlyArray<VsCommand.AnyCommand> = [
 
 However, if you need to manually add command declarations:
 
-1. Edit the release script at `src/scripts/release.ts`
-1. Add your command declaration to the appropriate section
+1. Edit the [release script](src/scripts/release.ts)
+2. Add your command declaration to the appropriate section
 ```typescript
 {
     ...file,
@@ -116,7 +116,7 @@ However, if you need to manually add command declarations:
   
   Instead you have to use VSCode `OutputChannel` API - these logs will appear in the "Script Manager" (or whatever you name your channel) channel in the Output tab:
   - Use Effect logging APIs like `Effect.log()` or `Console.log()` - these are already configured to output to `OutputChannel`
-  - Use `MainOutputChannel` from `$/vscode/console.ts` for direct `OutputChannel` access
+  - Use `MainOutputChannel` from [`$/vscode/console.ts`](src/vscode/console.ts) for direct `OutputChannel` access
   - Effect runtime crashes are also automatically reported there
 
 ### Build vs Runtime Code
@@ -128,5 +128,5 @@ However, if you need to manually add command declarations:
 
 - **Build fails**: Run `bun run lint` and `bun run typecheck` to identify issues
 - **Extension not loading**: Check the VS Code developer console for errors
-- **Commands not appearing**: Ensure commands are properly exported in `src/commands/index.ts` and the extension is reloaded
+- **Commands not appearing**: Ensure commands are properly exported in [`src/commands/index.ts`](src/commands/index.ts) and the extension is reloaded
 - **Logs not appearing**: Use Effect logging APIs or `MainOutputChannel` instead of `console.log()`
