@@ -19,6 +19,7 @@ export namespace VsCommand {
 
 	export class Command extends Data.TaggedClass("Command")<CommandConfig> {}
 
+	/** Unlike regular {@link Command} this command has access to active {@link TextEditor} and such */
 	export class TextCommand extends Data.TaggedClass("TextCommand")<
 		CommandConfig<CurrentDirectory | TextEditor>
 	> {}

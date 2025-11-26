@@ -13,18 +13,15 @@ When working on this codebase:
 ## Development Commands
 ```bash
 # Build and Development
-bun run build          # Build the project
-bun run dev            # Watch mode development
-bun run debug          # Watch mode with debugging
+bun run build          # Only builds the project
+bun run release        # Build, package and install
+bun run dev            # Like release, but in watch mode
+bun run package        # Only packages the extension
 
 # Code Quality
 bun run format         # Format code with Biome
 bun run lint           # Lint code with Biome  
 bun run typecheck      # TypeScript type checking
-
-# Release and Packaging
-bun run release        # Create release
-bun run package        # Package VS Code extension
 ```
 
 ## Architecture Principles
@@ -81,6 +78,7 @@ bun run package        # Package VS Code extension
 ### Error Handling Strategy
 - Create specific error types for different failure modes
 - Use `Effect.try` for wrapping unsafe operations
+- Use `Effect.tryPromise` for wrapping async functions
 - Provide meaningful error context for debugging
 
 ## Key Libraries
@@ -97,8 +95,22 @@ bun run package        # Package VS Code extension
 - Utility functions for common operations
 - VS Code specific code separated in dedicated directory
 
+## Runtime Environment
+
+### Build vs Runtime Code
+- **Build scripts** (in `src/scripts/`) can use Bun APIs and run in Bun environment
+- **Extension code** (everything else) runs in VS Code's Node.js environment and must use Node.js-compatible APIs
+
+### Logging Guidelines
+- **Do not use `console.log()`** or similar Node.js logging methods in extension code - these will not appear anywhere
+- **Use Effect logging APIs** like `Effect.log()` or `Console.log()` - these are configured to output to VS Code Output panel
+- **Use `MainOutputChannel`** from `$/vscode/console.ts` for direct VS Code Output tab access
+- **Logs appear in "Script Manager" channel** in the Output tab
+- **Effect runtime crashes** are automatically reported to the Output channel
+
 ## Additional Development Notes
 - Use Bun as the primary package manager and runtime
 - VS Code extension uses CommonJS module system
 - Effect language service configured with namespace imports and aliases
 - Biome automatically organizes imports on save
+- VS Code settings configured for automatic import organization on save

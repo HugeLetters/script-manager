@@ -1,2 +1,2 @@
 - add Opencode command to update AGENTS.md with current session
-- fill in README
+- extension icon

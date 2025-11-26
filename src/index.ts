@@ -3,7 +3,7 @@ import * as Arr from "effect/Array";
 import * as Effect from "effect/Effect";
 import type { ExtensionContext } from "vscode";
 import { Commands } from "./commands";
-
+import { SharedRuntimeLive } from "./runtime";
 import { VsCommand } from "./vscode/command";
 
 export function activate(context: ExtensionContext) {
@@ -23,7 +23,11 @@ export function activate(context: ExtensionContext) {
 		);
 
 		context.subscriptions.push(...commands);
-	}).pipe(Effect.tapErrorCause(Effect.logFatal), Effect.runPromise);
+	}).pipe(
+		Effect.provide(SharedRuntimeLive),
+		Effect.tapErrorCause(Effect.logFatal),
+		Effect.runPromise,
+	);
 }
 
 export function deactivate() {}
